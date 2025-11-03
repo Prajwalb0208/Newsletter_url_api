@@ -32,11 +32,11 @@ async def search_resources(request: QueryRequest):
     try:
         search_output = run_search(topic)
         urls = []
-        store_urls(urls)
         for line in search_output.splitlines():
             if line.strip().startswith(tuple(f"{i}." for i in range(1, 11))):
                 url = line.split(".", 1)[-1].strip()
                 urls.append(url)
+        store_urls(urls)
         summaries = []
         for url in urls:
             summary = fetch_with_fallback(url)
