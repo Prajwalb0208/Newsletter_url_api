@@ -48,4 +48,5 @@ async def search_resources(request: QueryRequest):
                 result_urls.append(line.split(".", 1)[-1].strip())
         return {"ranked_urls": result_urls}
     except Exception as e:
+        print(f"Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
