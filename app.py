@@ -3,6 +3,9 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from claude_client import run_search, fetch_with_fallback, run_rank
 from upstash_redis import Redis
+from urllib.parse import urlparse
+import json
+from datetime import datetime
 
 app = FastAPI()
 
@@ -11,28 +14,34 @@ redis_client = Redis(
     token=os.environ["UPSTASH_REDIS_REST_TOKEN"]
 )
 
-
-def store_url_summary(url: str, summary: str):
-    redis_client.set(url, summary)
+def store_resource(url: str, summary: str):
+    parsed_url = urlparse(url)
+    data = {
+        "url": url,
+        "name": parsed_url.hostname or "",
+        "summary": summary,
+        "date_stored": datetime.utcnow().isoformat() + "Z"
+    }
+    # Store as JSON string, key can be URL or hash of URL if long
+    redis_client.set(url, json.dumps(data))
 
 class QueryRequest(BaseModel):
     topic: str
 
-
 @app.get("/")
 async def health():
     return {"status": "ok"}
-
 
 @app.get("/stored_resources/")
 async def get_stored_resources():
     keys = redis_client.keys("*")
     resources = []
     for key in keys:
-        summary = redis_client.get(key)
-        resources.append({"url": key, "summary": summary})
+        val_json = redis_client.get(key)
+        if val_json:
+            resource = json.loads(val_json)
+            resources.append(resource)
     return {"resources": resources}
-
 
 @app.post("/search_resources/")
 async def search_resources(request: QueryRequest):
@@ -49,7 +58,7 @@ async def search_resources(request: QueryRequest):
                     continue
                 urls.append(url)
                 summaries.append(summary)
-                store_url_summary(url, summary)
+                store_resource(url, summary)
         ranked_list = run_rank("\n".join([f"{url}:\n{summary}" for url, summary in zip(urls, summaries)]))
         result_urls = []
         for line in ranked_list.splitlines():
