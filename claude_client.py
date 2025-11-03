@@ -16,6 +16,7 @@ You are an expert curator of beginner-friendly learning resources, images, and v
 6. No commentary, description, or markdown—output URLs only.
 """
 
+
 def claude_complete(messages, model="claude-haiku-4-5", max_tokens=1024):
     response = client.messages.create(
         model=model,
@@ -26,6 +27,7 @@ def claude_complete(messages, model="claude-haiku-4-5", max_tokens=1024):
     )
     return response.content[0].text
 
+
 def run_search(topic):
     prompt = (
         f"List up to 10 top beginner-friendly URLs about {topic}. "
@@ -33,11 +35,13 @@ def run_search(topic):
     )
     return claude_complete([{"role": "user", "content": prompt}])
 
+
 def run_fetch(url):
     prompt = (
         f"Summarize the page at {url} for beginners. Note: Is this a tutorial, infographic/image, or video? Rate beginner-friendliness."
     )
     return claude_complete([{"role": "user", "content": prompt}])
+
 
 def run_rank(url_summaries):
     prompt = (
@@ -47,12 +51,14 @@ def run_rank(url_summaries):
     )
     return claude_complete([{"role": "user", "content": prompt}])
 
+
 def run_playwright_fetch(url):
     prompt = (
         f"Using the Playwright MCP browser, fetch and summarize the page at {url} for beginners. "
         "Note if it contains tutorial, infographic/image, or video. Rate beginner accessibility."
     )
     return claude_complete([{"role": "user", "content": prompt}])
+
 
 def fetch_with_fallback(url):
     try:
