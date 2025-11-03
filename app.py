@@ -7,6 +7,11 @@ app = FastAPI()
 class QueryRequest(BaseModel):
     topic: str
 
+@app.get("/")
+async def health():
+    return {"status": "ok"}
+
+
 @app.post("/search_resources/")
 async def search_resources(request: QueryRequest):
     topic = request.topic
