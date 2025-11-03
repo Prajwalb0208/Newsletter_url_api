@@ -14,7 +14,7 @@ redis_client = Redis(
 
 
 def store_url_summary(url: str, summary: str):
-    # Store URL as key, summary as value
+    # Store URL as key, summary as value in Redis
     redis_client.set(url, summary)
 
 
