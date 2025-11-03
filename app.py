@@ -6,7 +6,6 @@ from upstash_redis import Redis
 
 app = FastAPI()
 
-# Initialize Upstash Redis REST client
 redis_client = Redis(
     url=os.environ["UPSTASH_REDIS_REST_URL"],
     token=os.environ["UPSTASH_REDIS_REST_TOKEN"]
@@ -14,9 +13,7 @@ redis_client = Redis(
 
 
 def store_url_summary(url: str, summary: str):
-    # Store URL as key, summary as value in Redis
     redis_client.set(url, summary)
-
 
 class QueryRequest(BaseModel):
     topic: str
@@ -48,7 +45,6 @@ async def search_resources(request: QueryRequest):
             if line.strip().startswith(tuple(f"{i}." for i in range(1, 11))):
                 url = line.split(".", 1)[-1].strip()
                 summary = fetch_with_fallback(url)
-                # Skip blocked or error URLs
                 if "blocked" in summary.lower() or "error" in summary.lower():
                     continue
                 urls.append(url)
