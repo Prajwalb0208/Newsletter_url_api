@@ -2,11 +2,14 @@ import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from claude_client import run_search, fetch_with_fallback, run_rank
-import redis
+from upstash_redis import Redis
 
 app = FastAPI()
-REDIS_URL = os.environ.get("UPSTASH_REDIS_URL")
-redis_client = redis.from_url(REDIS_URL)
+
+redis_client = Redis(
+    url=os.environ["UPSTASH_REDIS_REST_URL"],
+    token=os.environ["UPSTASH_REDIS_REST_TOKEN"]
+)
 
 def store_urls(urls):
     if urls:
@@ -22,9 +25,7 @@ async def health():
 @app.get("/stored_urls/")
 async def get_stored_urls():
     stored_urls = redis_client.smembers("extracted_urls")
-    urls = [url.decode("utf-8") for url in stored_urls]
-    return {"urls": urls}
-
+    return {"urls": stored_urls} 
 
 @app.post("/search_resources/")
 async def search_resources(request: QueryRequest):
